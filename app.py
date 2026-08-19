@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import re
 
 # ==============================================================================
-# CONFIGURACIÓN DE PÁGINA Y ESTILOS
+# CONFIGURACIÓN DE PÁGINA
 # ==============================================================================
 st.set_page_config(
     page_title="Gestor Urbano IA — Centro de Operaciones Municipal",
@@ -15,53 +15,383 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Estilos CSS limpios y adaptables tanto a modo claro como oscuro
+# ==============================================================================
+# SISTEMA DE DISEÑO CSS — PREMIUM UX/UI
+# ==============================================================================
 st.markdown("""
 <style>
-    /* Tarjeta destacada de métrica */
-    .kpi-card {
-        border: 1px solid rgba(128, 128, 128, 0.2);
-        border-radius: 10px;
-        padding: 1.1rem;
-        text-align: center;
-        background: rgba(128, 128, 128, 0.05);
-        margin-bottom: 0.8rem;
-    }
-    .kpi-title {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-        opacity: 0.8;
-    }
-    .kpi-value {
-        font-size: 1.8rem;
-        font-weight: 800;
-        margin-top: 0.3rem;
+    /* ── Google Fonts ── */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    /* ── Base Typography ── */
+    html, body, [class*="css"], .stMarkdown, .stText, label, .stSelectbox, .stTextInput {
+        font-family: 'Inter', sans-serif !important;
     }
 
-    /* Badges de estado */
-    .chip {
+    /* ── Hero Header ── */
+    .hero-container {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #0f2027 70%, #203a43 100%);
+        border-radius: 16px;
+        padding: 2rem 2.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.07);
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-container::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 30% 50%, rgba(59,130,246,0.12) 0%, transparent 50%),
+                    radial-gradient(circle at 70% 50%, rgba(16,185,129,0.08) 0%, transparent 50%);
+        animation: aurora 8s ease-in-out infinite alternate;
+    }
+    @keyframes aurora {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(3%, 3%) rotate(3deg); }
+    }
+    .hero-title {
+        font-size: 2rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #60a5fa, #34d399, #60a5fa);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: shine 4s linear infinite;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    @keyframes shine {
+        to { background-position: 200% center; }
+    }
+    .hero-subtitle {
+        color: rgba(255,255,255,0.6);
+        font-size: 0.9rem;
+        font-weight: 400;
+        margin-top: 0.4rem;
+        position: relative;
+        z-index: 1;
+        letter-spacing: 0.01em;
+    }
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(34,197,94,0.15);
+        border: 1px solid rgba(34,197,94,0.35);
+        color: #4ade80;
+        padding: 0.4rem 1rem;
+        border-radius: 50px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        position: relative;
+        z-index: 1;
+    }
+    .hero-badge::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        background: #4ade80;
+        border-radius: 50%;
         display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-size: 0.85rem;
+        animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    /* ── KPI Cards — Glassmorphism ── */
+    .kpi-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 1.3rem 1.2rem;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        margin-bottom: 0.8rem;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+        animation: fadeInUp 0.5s ease both;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(255,255,255,0.15);
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .kpi-title {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+        color: rgba(255,255,255,0.45);
+        margin-bottom: 0.5rem;
+    }
+    .kpi-value {
+        font-size: 2.2rem;
+        font-weight: 900;
+        line-height: 1;
+        background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .kpi-value-red {
+        background: linear-gradient(135deg, #f87171, #ef4444) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+    .kpi-value-blue {
+        background: linear-gradient(135deg, #93c5fd, #3b82f6) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+    .kpi-value-green {
+        background: linear-gradient(135deg, #6ee7b7, #10b981) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+    .kpi-unit {
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.35);
+        margin-top: 0.2rem;
+    }
+
+    /* ── Priority Chips ── */
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0.28rem 0.85rem;
+        border-radius: 50px;
+        font-size: 0.78rem;
         font-weight: 700;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
     }
-    .chip-critica { background-color: #fee2e2; color: #991b1b; }
-    .chip-alta { background-color: #ffedd5; color: #9a3412; }
-    .chip-media { background-color: #fef9c3; color: #854d0e; }
-    .chip-baja { background-color: #dcfce7; color: #166534; }
-    
-    /* Box de mensaje al ciudadano */
-    .msg-box {
-        border-left: 5px solid #22c55e;
-        padding: 1rem 1.2rem;
-        border-radius: 6px;
-        background: rgba(34, 197, 94, 0.08);
-        font-size: 0.95rem;
+    .chip-critica {
+        background: rgba(239,68,68,0.15);
+        color: #f87171;
+        border: 1px solid rgba(239,68,68,0.35);
+    }
+    .chip-alta {
+        background: rgba(249,115,22,0.15);
+        color: #fb923c;
+        border: 1px solid rgba(249,115,22,0.35);
+    }
+    .chip-media {
+        background: rgba(234,179,8,0.15);
+        color: #facc15;
+        border: 1px solid rgba(234,179,8,0.35);
+    }
+    .chip-baja {
+        background: rgba(34,197,94,0.15);
+        color: #4ade80;
+        border: 1px solid rgba(34,197,94,0.35);
+    }
+
+    /* ── Resultado / Diagnostic Card ── */
+    .result-card {
+        border-radius: 14px;
+        padding: 1.4rem 1.5rem;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.07);
+        animation: fadeInUp 0.4s ease both;
+    }
+    .result-card-critica { border-left: 4px solid #ef4444; }
+    .result-card-alta    { border-left: 4px solid #f97316; }
+    .result-card-media   { border-left: 4px solid #eab308; }
+    .result-card-baja    { border-left: 4px solid #22c55e; }
+
+    .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    .result-ticket-id {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #f1f5f9;
+        font-family: 'Inter', monospace;
+    }
+    .result-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+        margin: 0.8rem 0;
+    }
+    .result-meta-item {
+        background: rgba(255,255,255,0.04);
+        border-radius: 8px;
+        padding: 0.5rem 0.8rem;
+        font-size: 0.82rem;
+    }
+    .result-meta-label {
+        color: rgba(255,255,255,0.4);
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+    }
+    .result-meta-value {
+        color: #e2e8f0;
+        font-weight: 600;
+        margin-top: 0.15rem;
+    }
+
+    /* ── Stepper de Acciones ── */
+    .stepper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin: 0.8rem 0;
+    }
+    .step-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    .step-number {
+        min-width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #06b6d4);
+        color: white;
+        font-size: 0.72rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+    .step-text {
+        font-size: 0.88rem;
+        color: #cbd5e1;
         line-height: 1.5;
+        padding-top: 2px;
+    }
+    .step-connector {
+        width: 2px;
+        height: 12px;
+        background: linear-gradient(to bottom, #3b82f6, transparent);
+        margin-left: 12px;
+    }
+
+    /* ── Burbuja WhatsApp ── */
+    .whatsapp-bubble {
+        background: linear-gradient(135deg, #075e54, #128c7e);
+        border-radius: 4px 18px 18px 18px;
+        padding: 1rem 1.2rem;
+        font-size: 0.9rem;
+        color: #e9f5f3;
+        line-height: 1.6;
+        position: relative;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        animation: fadeInUp 0.4s ease both;
+    }
+    .whatsapp-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.6rem;
+        font-size: 0.72rem;
+        color: #4ade80;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+    }
+    .whatsapp-tick {
+        font-size: 0.75rem;
+        color: #4ade80;
+        margin-top: 0.4rem;
+        text-align: right;
+    }
+
+    /* ── Motor Badge ── */
+    .motor-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(99,102,241,0.12);
+        border: 1px solid rgba(99,102,241,0.3);
+        color: #a5b4fc;
+        padding: 0.25rem 0.7rem;
+        border-radius: 50px;
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+
+    /* ── Sidebar Enhancements ── */
+    .sidebar-stat-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .sidebar-stat-label {
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.5);
+        font-weight: 500;
+    }
+    .sidebar-stat-value {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #f1f5f9;
+    }
+
+    /* ── Section Labels ── */
+    .section-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        color: rgba(255,255,255,0.35);
+        margin-bottom: 0.5rem;
+    }
+
+    /* ── Resumen Executive Box ── */
+    .exec-box {
+        background: rgba(59,130,246,0.08);
+        border: 1px solid rgba(59,130,246,0.2);
+        border-radius: 10px;
+        padding: 0.9rem 1.1rem;
+        font-size: 0.88rem;
+        color: #bfdbfe;
+        line-height: 1.5;
+        font-style: italic;
+        margin: 0.5rem 0;
+    }
+
+    /* ── Progress Bar ── */
+    .progress-bar-wrap {
+        background: rgba(255,255,255,0.06);
+        border-radius: 50px;
+        height: 8px;
+        overflow: hidden;
+        margin-top: 0.4rem;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 50px;
+        background: linear-gradient(90deg, #10b981, #34d399);
+        transition: width 1s ease;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -247,7 +577,7 @@ def clasificar_con_gemini(texto: str, api_key: str, modelo_nombre: str = "gemini
     """Invoca la API oficial de Google Gemini con salida estructurada en JSON."""
     if not GENAI_AVAILABLE:
         raise Exception("El paquete google-generativeai no está instalado.")
-    
+
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel(
         model_name=modelo_nombre,
@@ -272,7 +602,7 @@ def clasificar_con_gemini(texto: str, api_key: str, modelo_nombre: str = "gemini
 def clasificar_heuristico(texto: str) -> dict:
     """Motor inteligente offline con procesamiento de lenguaje y reglas especializadas."""
     t = texto.lower()
-    
+
     if any(k in t for k in ["cable", "chispa", "electrocu", "fuego", "derrumbe", "gas", "peligro", "muerte", "chispas"]):
         categoria = "Riesgo Eléctrico / Emergencia"
         subcategoria = "Cables caídos o riesgo estructural"
@@ -374,8 +704,7 @@ def clasificar_heuristico(texto: str) -> dict:
             "Asignación a la secretaría correspondiente"
         ]
 
-    # Extracción de ubicación con expresiones regulares
-    match = re.search(r'(?:en|calle|av\.|avenida|esquina|frente a)\s+([A-Za-z0-9\s]+?)(?:\.|\,|$)', texto, re.IGNORECASE)
+    match = re.search(r'(?:en|calle|av\.|avenida|esquina|frente a)\s+([A-Za-z0-9\s]+?)(?:\.|,|$)', texto, re.IGNORECASE)
     ubicacion = match.group(1).strip() if match else "Ubicación a determinar"
 
     return {
@@ -395,47 +724,74 @@ def clasificar_heuristico(texto: str) -> dict:
 
 
 # ==============================================================================
+# HELPERS DE PRIORIDAD
+# ==============================================================================
+PRIO_CONFIG = {
+    "Crítica": {"css": "chip-critica", "card": "result-card-critica", "icon": "🔴", "color": "#ef4444"},
+    "Alta":    {"css": "chip-alta",    "card": "result-card-alta",    "icon": "🟠", "color": "#f97316"},
+    "Media":   {"css": "chip-media",   "card": "result-card-media",   "icon": "🟡", "color": "#eab308"},
+    "Baja":    {"css": "chip-baja",    "card": "result-card-baja",    "icon": "🟢", "color": "#22c55e"},
+}
+
+# ==============================================================================
 # BARRA LATERAL — CONFIGURACIÓN Y ESTADO
 # ==============================================================================
 with st.sidebar:
-    st.header("⚙️ Configuración del Sistema")
-    
-    st.markdown("### 🤖 Motor de Inteligencia")
+    st.markdown("### ⚙️ Configuración del Sistema")
+
+    st.markdown("#### 🤖 Motor de Inteligencia")
     modo_ia = st.radio(
         "Modo de análisis:",
         ["Simulación Inteligente (Offline/Demo)", "Google Gemini API (Online)"],
-        index=0
+        index=0,
+        label_visibility="collapsed"
     )
-    
+
     gemini_key = ""
     modelo_elegido = "gemini-1.5-flash"
-    
+
     if modo_ia == "Google Gemini API (Online)":
         gemini_key = st.text_input(
             "Gemini API Key:",
             value=os.environ.get("GEMINI_API_KEY", ""),
             type="password",
-            help="Podés obtener tu key gratuita en aistudio.google.com"
+            help="Obtené tu key gratuita en aistudio.google.com"
         )
         modelo_elegido = st.selectbox(
             "Modelo:",
             ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"]
         )
         if not gemini_key:
-            st.info("ℹ️ Sin API Key. Se usará el motor simulado inteligente.")
-            
+            st.info("ℹ️ Sin API Key activa. Modo simulación.")
+
     st.divider()
-    
-    # Resumen rápido en barra lateral
+
     total_rec = len(st.session_state.reclamos)
     criticos_rec = sum(1 for r in st.session_state.reclamos if r["prioridad"] == "Crítica")
     resueltos_rec = sum(1 for r in st.session_state.reclamos if r["estado"] == "Resuelto")
-    
-    st.markdown("### 📊 Estado de Operaciones")
-    c_s1, c_s2 = st.columns(2)
-    c_s1.metric("Total Tickets", total_rec)
-    c_s2.metric("Críticos", criticos_rec)
-    st.metric("Resueltos", f"{resueltos_rec}/{total_rec} ({(resueltos_rec/total_rec*100):.0f}%)" if total_rec else "0")
+    tasa_res = round((resueltos_rec / total_rec * 100)) if total_rec else 0
+
+    st.markdown("#### 📊 Estado de Operaciones")
+    st.markdown(f"""
+    <div class="sidebar-stat-card">
+        <span class="sidebar-stat-label">Total Tickets</span>
+        <span class="sidebar-stat-value">{total_rec}</span>
+    </div>
+    <div class="sidebar-stat-card" style="border-color:rgba(239,68,68,0.2);">
+        <span class="sidebar-stat-label">🔴 Críticos Activos</span>
+        <span class="sidebar-stat-value" style="color:#f87171;">{criticos_rec}</span>
+    </div>
+    <div class="sidebar-stat-card" style="border-color:rgba(34,197,94,0.2);">
+        <span class="sidebar-stat-label">✅ Resueltos</span>
+        <span class="sidebar-stat-value" style="color:#4ade80;">{resueltos_rec}/{total_rec}</span>
+    </div>
+    <div style="margin-top:0.3rem;">
+        <div style="font-size:0.72rem; color:rgba(255,255,255,0.4); margin-bottom:0.3rem;">Tasa de resolución: {tasa_res}%</div>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:{tasa_res}%;"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.divider()
     if st.button("🗑️ Reiniciar Dataset de Prueba", use_container_width=True):
@@ -445,25 +801,31 @@ with st.sidebar:
 
 
 # ==============================================================================
-# ENCABEZADO PRINCIPAL (HERO)
+# HERO HEADER
 # ==============================================================================
 col_h1, col_h2 = st.columns([3, 1])
 with col_h1:
-    st.title("🏙️ Gestor Urbano IA")
-    st.markdown("**Centro de Operaciones Inteligente para Clasificación, Priorización y Ruteo de Reclamos Municipales**")
+    st.markdown("""
+    <div class="hero-container">
+        <div class="hero-title">🏙️ Gestor Urbano IA</div>
+        <div class="hero-subtitle">Centro de Operaciones Inteligente — Clasificación, Priorización y Ruteo de Reclamos Municipales con IA</div>
+    </div>
+    """, unsafe_allow_html=True)
 with col_h2:
-    st.markdown("<div style='text-align: right; padding-top: 1rem;'><span class='chip' style='background-color:#dcfce7; color:#166534;'>🟢 Sistema Operativo — IA Online</span></div>", unsafe_allow_html=True)
-
-st.divider()
+    st.markdown("""
+    <div style="height:100%; display:flex; align-items:center; justify-content:flex-end; padding-top:0.5rem;">
+        <span class="hero-badge">Sistema Operativo</span>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ==============================================================================
 # PESTAÑAS PRINCIPALES
 # ==============================================================================
 tab_ingreso, tab_dashboard, tab_bandeja, tab_docs = st.tabs([
-    "📝 1. Mesa de Entradas / Nuevo Reclamo",
-    "📊 2. Dashboard & KPIs Municipales",
-    "🗂️ 3. Bandeja de Cuadrillas & Tickets",
-    "ℹ️ 4. Metodología, Prompt & Factibilidad"
+    "📝 Mesa de Entradas",
+    "📊 Dashboard & KPIs",
+    "🗂️ Bandeja de Tickets",
+    "ℹ️ Metodología & Prompt"
 ])
 
 
@@ -472,13 +834,12 @@ tab_ingreso, tab_dashboard, tab_bandeja, tab_docs = st.tabs([
 # ==============================================================================
 with tab_ingreso:
     col_form, col_res = st.columns([1.1, 0.9], gap="large")
-    
+
     with col_form:
         with st.container(border=True):
             st.subheader("📋 Ingreso de Reporte Ciudadano")
-            
-            # Ejemplos rápidos
-            st.caption("⚡ **Cargar casos de prueba rápidos con 1 clic:**")
+
+            st.caption("⚡ **Casos de prueba rápidos — clic para cargar:**")
             e1, e2, e3 = st.columns(3)
             if e1.button("💥 Cables con chispas", use_container_width=True):
                 st.session_state["in_reclamo"] = "Urgente: Hay cables de luz cortados sobre la vereda echando chispas tras la tormenta en Av. Colón 450. Pasan chicos caminando, es un peligro de muerte."
@@ -498,7 +859,8 @@ with tab_ingreso:
                 canal_sel = st.selectbox(
                     "Canal de Recepción:",
                     ["Portal Web", "Línea 147 (Telefónico)", "WhatsApp Municipal", "App Móvil Ciudadana", "Mesa de Entradas"],
-                    index=["Portal Web", "Línea 147 (Telefónico)", "WhatsApp Municipal", "App Móvil Ciudadana", "Mesa de Entradas"].index(st.session_state.get("in_canal", "Portal Web"))
+                    index=["Portal Web", "Línea 147 (Telefónico)", "WhatsApp Municipal", "App Móvil Ciudadana", "Mesa de Entradas"].index(
+                        st.session_state.get("in_canal", "Portal Web"))
                 )
             with c_vec:
                 nombre_vecino = st.text_input(
@@ -518,29 +880,31 @@ with tab_ingreso:
 
     with col_res:
         with st.container(border=True):
-            st.subheader("⚡ Diagnóstico y Derivación en Tiempo Real")
-            
+            st.subheader("⚡ Diagnóstico en Tiempo Real")
+
             if btn_analizar:
                 if not texto_in.strip():
-                    st.warning("⚠️ Por favor, ingresá la descripción del problema antes de procesar.")
+                    st.warning("⚠️ Ingresá la descripción del problema antes de procesar.")
                 else:
-                    with st.spinner("🤖 Procesando con Inteligencia Artificial..."):
+                    with st.spinner("🤖 Analizando con IA..."):
                         res = None
                         motor = ""
-                        
+
                         if modo_ia == "Google Gemini API (Online)" and gemini_key:
                             try:
                                 res = clasificar_con_gemini(texto_in, gemini_key, modelo_elegido)
-                                motor = f"Google Gemini ({modelo_elegido})"
+                                motor = f"Google Gemini · {modelo_elegido}"
+                                motor_icon = "✨"
                             except Exception as e:
-                                st.error(f"Error en Gemini API ({e}). Usando motor de respaldo.")
+                                st.error(f"Error Gemini API ({e}). Usando motor de respaldo.")
                                 res = clasificar_heuristico(texto_in)
-                                motor = "Motor Heurístico (Respaldo)"
+                                motor = "Motor Heurístico · Respaldo"
+                                motor_icon = "⚙️"
                         else:
                             res = clasificar_heuristico(texto_in)
-                            motor = "Motor Heurístico Inteligente (Offline)"
+                            motor = "Motor Heurístico · Offline"
+                            motor_icon = "⚙️"
 
-                        # Generar ticket único
                         nuevo_id = f"TKT-{1042 + len(st.session_state.reclamos)}"
                         ahora_str = datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -565,43 +929,91 @@ with tab_ingreso:
                         }
                         st.session_state.reclamos.insert(0, registro)
 
-                        # Tarjeta de resultado
                         prio = res.get("prioridad", "Media")
-                        chip_class = {
-                            "Crítica": "chip-critica",
-                            "Alta": "chip-alta",
-                            "Media": "chip-media",
-                            "Baja": "chip-baja"
-                        }.get(prio, "chip-media")
-                        
-                        st.success(f"✅ Ticket #{nuevo_id} generado y derivado exitosamente.")
-                        
+                        cfg = PRIO_CONFIG.get(prio, PRIO_CONFIG["Media"])
+
+                        st.success(f"✅ Ticket **{nuevo_id}** generado y derivado exitosamente.")
+
+                        # ── Tarjeta de resultado ──
+                        acciones = res.get("acciones_recomendadas", [])
+                        steps_html = ""
+                        for i, acc in enumerate(acciones, 1):
+                            connector = '<div class="step-connector"></div>' if i < len(acciones) else ""
+                            steps_html += f"""
+                            <div class="step-item">
+                                <div class="step-number">{i}</div>
+                                <div class="step-text">{acc}</div>
+                            </div>
+                            {connector}
+                            """
+
                         st.markdown(f"""
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-                            <span style="font-size:1.1rem; font-weight:700;">Ticket #{nuevo_id}</span>
-                            <span class="chip {chip_class}">Prioridad: {prio}</span>
+                        <div class="result-card {cfg['card']}">
+                            <div class="result-header">
+                                <div>
+                                    <div class="result-ticket-id">#{nuevo_id}</div>
+                                    <div style="font-size:0.8rem; color:rgba(255,255,255,0.4); margin-top:2px;">{ahora_str} · {canal_sel}</div>
+                                </div>
+                                <span class="chip {cfg['css']}">{cfg['icon']} {prio}</span>
+                            </div>
+                            <div class="result-meta">
+                                <div class="result-meta-item">
+                                    <div class="result-meta-label">📂 Categoría</div>
+                                    <div class="result-meta-value">{res.get('categoria')}</div>
+                                </div>
+                                <div class="result-meta-item">
+                                    <div class="result-meta-label">🏢 Área Responsable</div>
+                                    <div class="result-meta-value">{res.get('area_responsable')}</div>
+                                </div>
+                                <div class="result-meta-item">
+                                    <div class="result-meta-label">⏱️ SLA</div>
+                                    <div class="result-meta-value">{res.get('sla_horas')} horas</div>
+                                </div>
+                                <div class="result-meta-item">
+                                    <div class="result-meta-label">📍 Ubicación</div>
+                                    <div class="result-meta-value">{res.get('ubicacion_detectada')}</div>
+                                </div>
+                            </div>
                         </div>
                         """, unsafe_allow_html=True)
-                        
-                        st.markdown(f"**📂 Categoría:** `{res.get('categoria')}` — *{res.get('subcategoria')}*")
-                        st.markdown(f"**🏢 Área Responsable:** `{res.get('area_responsable')}`")
-                        st.markdown(f"**⏱️ Plazo de Respuesta (SLA):** `{res.get('sla_horas')} horas`  |  **📍 Ubicación:** `{res.get('ubicacion_detectada')}`")
-                        
-                        st.divider()
-                        st.markdown("**📌 Resumen Ejecutivo para la Cuadrilla:**")
-                        st.info(res.get("resumen_ejecutivo"))
 
-                        st.markdown(f"**👷 Cuadrilla Asignada:** `{res.get('cuadrilla_sugerida')}`")
-                        st.markdown("**🛠️ Plan de Acción Operativo:**")
-                        for i, acc in enumerate(res.get("acciones_recomendadas", []), 1):
-                            st.write(f"{i}. {acc}")
+                        # ── Resumen ejecutivo ──
+                        st.markdown(f"""
+                        <div class="section-label" style="margin-top:1rem;">📌 Resumen para Cuadrilla</div>
+                        <div class="exec-box">{res.get('resumen_ejecutivo')}</div>
+                        """, unsafe_allow_html=True)
 
-                        st.markdown("**💬 Notificación Automática al Vecino:**")
-                        st.markdown(f"<div class='msg-box'>{res.get('mensaje_ciudadano')}</div>", unsafe_allow_html=True)
+                        # ── Cuadrilla + Stepper ──
+                        st.markdown(f"""
+                        <div class="section-label" style="margin-top:1rem;">👷 Cuadrilla: <span style="color:#e2e8f0; font-weight:600; text-transform:none; letter-spacing:0;">{res.get('cuadrilla_sugerida')}</span></div>
+                        <div class="section-label">🛠️ Plan de Acción Operativo</div>
+                        <div class="stepper">{steps_html}</div>
+                        """, unsafe_allow_html=True)
 
-                        st.caption(f"⚙️ Procesado con: *{motor}* | {ahora_str}")
+                        # ── Burbuja WhatsApp ──
+                        st.markdown(f"""
+                        <div class="section-label" style="margin-top:1rem;">💬 Notificación Automática al Vecino</div>
+                        <div class="whatsapp-bubble">
+                            <div class="whatsapp-header">📱 GESTOR URBANO IA · Municipio</div>
+                            {res.get('mensaje_ciudadano')}
+                            <div class="whatsapp-tick">✓✓ Entregado</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                        # ── Motor badge ──
+                        st.markdown(f"""
+                        <div style="margin-top:0.8rem;">
+                            <span class="motor-badge">{motor_icon} {motor}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+
             else:
-                st.info("👈 Completá el reclamo a la izquierda o hacé clic en un ejemplo para ver el análisis de la IA en tiempo real.")
+                st.markdown("""
+                <div style="text-align:center; padding: 3rem 1rem; color:rgba(255,255,255,0.3);">
+                    <div style="font-size:3rem; margin-bottom:1rem;">🏙️</div>
+                    <div style="font-size:0.9rem;">Completá el reclamo o hacé clic en un ejemplo rápido para ver el análisis en tiempo real</div>
+                </div>
+                """, unsafe_allow_html=True)
 
 
 # ==============================================================================
@@ -609,48 +1021,48 @@ with tab_ingreso:
 # ==============================================================================
 with tab_dashboard:
     st.subheader("📊 Métricas de Operaciones Urbanas en Tiempo Real")
-    
+
     if st.session_state.reclamos:
         df = pd.DataFrame(st.session_state.reclamos)
-        
-        # Fila de tarjetas KPI
+
+        total = len(df)
+        criticos = len(df[df["prioridad"].isin(["Crítica", "Alta"])])
+        sla_prom = round(df["sla_horas"].mean(), 1)
+        resueltos = len(df[df["estado"] == "Resuelto"])
+        tasa = round((resueltos / total) * 100, 1) if total else 0
+
         k1, k2, k3, k4 = st.columns(4)
         with k1:
             st.markdown(f"""
             <div class="kpi-card">
                 <div class="kpi-title">Total de Reclamos</div>
-                <div class="kpi-value">{len(df)}</div>
-            </div>
-            """, unsafe_allow_html=True)
+                <div class="kpi-value">{total}</div>
+                <div class="kpi-unit">tickets registrados</div>
+            </div>""", unsafe_allow_html=True)
         with k2:
-            criticos = len(df[df["prioridad"].isin(["Crítica", "Alta"])])
             st.markdown(f"""
             <div class="kpi-card">
-                <div class="kpi-title" style="color:#ef4444;">Urgentes / Críticos</div>
-                <div class="kpi-value" style="color:#ef4444;">{criticos}</div>
-            </div>
-            """, unsafe_allow_html=True)
+                <div class="kpi-title" style="color:#f87171;">Urgentes / Críticos</div>
+                <div class="kpi-value kpi-value-red">{criticos}</div>
+                <div class="kpi-unit">requieren atención inmediata</div>
+            </div>""", unsafe_allow_html=True)
         with k3:
-            sla_prom = round(df["sla_horas"].mean(), 1)
             st.markdown(f"""
             <div class="kpi-card">
                 <div class="kpi-title">SLA Promedio</div>
-                <div class="kpi-value" style="color:#3b82f6;">{sla_prom} hs</div>
-            </div>
-            """, unsafe_allow_html=True)
+                <div class="kpi-value kpi-value-blue">{sla_prom}</div>
+                <div class="kpi-unit">horas de respuesta</div>
+            </div>""", unsafe_allow_html=True)
         with k4:
-            resueltos = len(df[df["estado"] == "Resuelto"])
-            tasa = round((resueltos / len(df)) * 100, 1) if len(df) else 0
             st.markdown(f"""
             <div class="kpi-card">
-                <div class="kpi-title" style="color:#22c55e;">Tasa de Resolución</div>
-                <div class="kpi-value" style="color:#22c55e;">{tasa}%</div>
-            </div>
-            """, unsafe_allow_html=True)
+                <div class="kpi-title" style="color:#4ade80;">Tasa de Resolución</div>
+                <div class="kpi-value kpi-value-green">{tasa}%</div>
+                <div class="kpi-unit">{resueltos} de {total} resueltos</div>
+            </div>""", unsafe_allow_html=True)
 
         st.write("")
-        
-        # Gráficos estadísticos nativos
+
         g1, g2 = st.columns(2)
         with g1:
             with st.container(border=True):
@@ -658,7 +1070,6 @@ with tab_dashboard:
                 cat_counts = df["categoria"].value_counts().reset_index()
                 cat_counts.columns = ["Categoría", "Cantidad"]
                 st.bar_chart(cat_counts.set_index("Categoría"), color="#3b82f6")
-                
         with g2:
             with st.container(border=True):
                 st.markdown("##### ⚡ Reclamos por Nivel de Prioridad")
@@ -689,11 +1100,10 @@ with tab_dashboard:
 # ==============================================================================
 with tab_bandeja:
     st.subheader("🗂️ Bandeja de Gestión de Reclamos y Cuadrillas")
-    
+
     if st.session_state.reclamos:
         df_tkt = pd.DataFrame(st.session_state.reclamos)
-        
-        # Filtros interactivos
+
         f1, f2, f3 = st.columns(3)
         with f1:
             filtro_prio = st.multiselect("Filtrar Prioridad:", options=df_tkt["prioridad"].unique(), default=df_tkt["prioridad"].unique())
@@ -738,33 +1148,51 @@ with tab_bandeja:
             )
 
         st.divider()
-        
-        # Ficha técnica detallada de un ticket
-        st.markdown("#### 🔍 Ver Ficha Técnica Completa de un Ticket")
-        ticket_elegido = st.selectbox(
-            "Seleccionar Ticket para auditar:",
-            options=df_tkt["id"].tolist()
-        )
-        
+        st.markdown("#### 🔍 Ficha Técnica Completa de un Ticket")
+        ticket_elegido = st.selectbox("Seleccionar Ticket:", options=df_tkt["id"].tolist())
+
         if ticket_elegido:
             item = next((r for r in st.session_state.reclamos if r["id"] == ticket_elegido), None)
             if item:
+                prio_item = item.get("prioridad", "Media")
+                cfg_item = PRIO_CONFIG.get(prio_item, PRIO_CONFIG["Media"])
                 with st.container(border=True):
                     c_det1, c_det2 = st.columns([1.5, 1])
                     with c_det1:
                         st.markdown(f"### {item['id']} — {item['categoria']}")
-                        st.markdown(f"**Descripción ingresada:** *\"{item['descripcion']}\"*")
-                        st.markdown(f"**📌 Resumen Cuadrilla:** `{item['resumen']}`")
-                        st.markdown(f"**🛠️ Plan de Acción:**")
-                        for idx_a, act in enumerate(item["acciones"], 1):
-                            st.write(f"{idx_a}. {act}")
+                        st.markdown(f"**Descripción:** *\"{item['descripcion']}\"*")
+                        st.markdown(f"""<div class="exec-box">{item['resumen']}</div>""", unsafe_allow_html=True)
+                        st.markdown("**🛠️ Plan de Acción:**")
+                        steps_ficha = "".join(
+                            f'<div class="step-item"><div class="step-number">{i}</div><div class="step-text">{a}</div></div>'
+                            for i, a in enumerate(item["acciones"], 1)
+                        )
+                        st.markdown(f'<div class="stepper">{steps_ficha}</div>', unsafe_allow_html=True)
                     with c_det2:
-                        st.markdown(f"**Prioridad:** `{item['prioridad']}` (SLA: {item['sla_horas']} hs)")
-                        st.markdown(f"**Área Responsable:** `{item['area']}`")
-                        st.markdown(f"**Cuadrilla:** `{item['cuadrilla']}`")
-                        st.markdown(f"**Ubicación:** `{item['ubicacion']}`")
-                        st.markdown(f"**Canal:** `{item['canal']}` | **Fecha:** `{item['fecha']}`")
-                        st.markdown(f"**Estado:** `{item['estado']}`")
+                        st.markdown(f"""
+                        <div style="display:flex; flex-direction:column; gap:0.5rem; padding-top:0.5rem;">
+                            <div class="result-meta-item">
+                                <div class="result-meta-label">Prioridad · SLA</div>
+                                <div class="result-meta-value"><span class="chip {cfg_item['css']}">{cfg_item['icon']} {prio_item}</span> &nbsp; {item['sla_horas']} hs</div>
+                            </div>
+                            <div class="result-meta-item">
+                                <div class="result-meta-label">Área Responsable</div>
+                                <div class="result-meta-value">{item['area']}</div>
+                            </div>
+                            <div class="result-meta-item">
+                                <div class="result-meta-label">Cuadrilla</div>
+                                <div class="result-meta-value">{item['cuadrilla']}</div>
+                            </div>
+                            <div class="result-meta-item">
+                                <div class="result-meta-label">Ubicación · Canal</div>
+                                <div class="result-meta-value">{item['ubicacion']} · {item['canal']}</div>
+                            </div>
+                            <div class="result-meta-item">
+                                <div class="result-meta-label">Estado · Fecha</div>
+                                <div class="result-meta-value">{item['estado']} · {item['fecha']}</div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
     else:
         st.info("No hay tickets disponibles.")
 
@@ -773,18 +1201,18 @@ with tab_bandeja:
 # PESTAÑA 4: METODOLOGÍA, PROMPT & FACTIBILIDAD
 # ==============================================================================
 with tab_docs:
-    st.subheader("ℹ️ Arquitectura del Sistema, Prompt Engineering y Viabilidad")
-    
+    st.subheader("ℹ️ Arquitectura del Sistema, Prompt Engineering y Viabilidad Económica")
+
     st.markdown("""
     ### 🏛️ Propósito y Problemática Resuelta
     En la gestión pública tradicional, la recepción y clasificación de reclamos es un cuello de botella manual, lento y sujeto a criterios dispares:
     - **Demoras operativas:** Un operador humano puede tardar entre 3 y 8 minutos en leer, categorizar y derivar un reclamo.
     - **Errores de ruteo:** Hasta un 25% de los tickets son derivados al área equivocada.
     - **Falta de prioridad estandarizada:** No se discrimina adecuadamente una emergencia crítica (ej. cables con chispas) de una tarea ordinaria.
-    
+
     **Gestor Urbano IA** resuelve esta problemática aplicando un **Modelo de Lenguaje (LLM)** con un **Prompt de Sistema Estructurado con Salida JSON**.
     """)
-    
+
     with st.container(border=True):
         st.markdown("#### 🧠 Prompt Estructurado del Sistema (System Instruction)")
         st.code(PROMPT_SISTEMA, language="text")
@@ -792,7 +1220,7 @@ with tab_docs:
     st.markdown("""
     ---
     ### 💰 Factibilidad Económica y ROI (Return on Investment)
-    
+
     | Métrica | Proceso Manual Tradicional | Gestor Urbano IA (Gemini 1.5 Flash) |
     |---|---|---|
     | **Tiempo por reclamo** | 3 a 8 minutos | **< 2 segundos** |
@@ -800,6 +1228,6 @@ with tab_docs:
     | **Costo por reclamo** | ~$0.50 - $1.20 USD (costo hora operador) | **$0.000015 USD (~$0.015 por 1.000 reclamos)** |
     | **Consumo de tokens** | N/A | ~200 tokens input / ~150 tokens output |
     | **Costo mensual (10.000 reclamos)** | ~$8.000 USD | **~$0.15 USD / mes** |
-    
+
     > **Conclusión:** La solución es **100% viable económica y técnicamente**, escalable a cualquier municipio del país con un costo computacional prácticamente nulo.
     """)
