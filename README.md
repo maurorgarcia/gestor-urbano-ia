@@ -7,7 +7,7 @@
 
 > **Proyecto Final — Curso de Prompt Engineering para Programadores | Coderhouse**  
 > **Estudiante:** Mauro García  
-> **Año:** 2025  
+> **Año:** 2026  
 
 ---
 
